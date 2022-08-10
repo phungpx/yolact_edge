@@ -163,10 +163,10 @@ def train(rank, args):
     w = SummaryHelper(distributed_rank=rank, log_dir=os.path.join(args.log_folder, cfg.name))
     w.add_text("argv", " ".join(sys.argv))
     logger.info("Args: {}".format(" ".join(sys.argv)))
-    import git
-    with git.Repo(search_parent_directories=True) as repo:
-        w.add_text("git_hash", repo.head.object.hexsha)
-        logger.info("git hash: {}".format(repo.head.object.hexsha))
+    # import git
+    # with git.Repo(search_parent_directories=True) as repo:
+    #     w.add_text("git_hash", repo.head.object.hexsha)
+    #     logger.info("git hash: {}".format(repo.head.object.hexsha))
 
     if args.num_gpus > 1:
         try:

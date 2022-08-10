@@ -231,8 +231,27 @@ youtube_vis_dataset = dataset_base.copy({
 })
 
 
+card_dataset = dataset_base.copy({
+    'name': 'Card Dataset',
 
+    'train_images': './data/VEHICLE_REGISTRATION/train/JPEGImages',
+    'train_info':   './data/VEHICLE_REGISTRATION/train/annotations.json',
 
+    'valid_images': './data/VEHICLE_REGISTRATION/test/JPEGImages',
+    'valid_info':   './data/VEHICLE_REGISTRATION/test/annotations.json',
+
+    'has_gt': True,
+    'class_names': (
+        'DKX_BACK_TYPE_1',
+        'DKX_BACK_TYPE_2',
+        'DKX_BACK_TYPE_3',
+        'DKX_BACK_TYPE_5',
+        'DKX_FRONT_TYPE_5',
+        'DKX_TYPE_1',
+        'DKX_TYPE_2',
+        'DKX_TYPE_3',
+    ),
+})
 
 
 # ----------------------- TRANSFORMS ----------------------- #
@@ -789,6 +808,7 @@ yolact_base_config = coco_base_config.copy({
     'use_tensorrt_safe_mode': False,
 })
 
+
 yolact_edge_config = yolact_base_config.copy({
     'name': 'yolact_edge',
     'torch2trt_max_calibration_images': 100,
@@ -799,11 +819,36 @@ yolact_edge_config = yolact_base_config.copy({
     'use_fast_nms': False
 })
 
+
 yolact_edge_mobilenetv2_config = yolact_edge_config.copy({
     'name': 'yolact_edge_mobilenetv2',
+    'backbone': mobilenetv2_backbone,
 
-    'backbone': mobilenetv2_backbone
+    # Dataset stuff
+    'dataset': card_dataset,
+    'num_classes': len(card_dataset.class_names) + 1,
+
+    # Training params
+    'lr_schedule': 'step',
+    'lr_steps': (15000,),
+    'max_iter': 38000,
+
+    'lr': 1e-4,
+
+    # Initial learning rate to linearly warmup from (if until > 0)
+    'lr_warmup_init': 1e-5,
+
+    # If > 0 then increase the lr linearly from warmup_init to lr each iter for until iters
+    'lr_warmup_until': 100,
 })
+
+
+# yolact_edge_mobilenetv2_config = yolact_edge_config.copy({
+#     'name': 'yolact_edge_mobilenetv2',
+
+#     'backbone': mobilenetv2_backbone
+# })
+
 
 yolact_edge_vid_config = yolact_edge_config.copy({
     'name': 'yolact_edge_vid',
