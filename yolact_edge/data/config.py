@@ -234,10 +234,10 @@ youtube_vis_dataset = dataset_base.copy({
 card_dataset = dataset_base.copy({
     'name': 'Card Dataset',
 
-    'train_images': './data/VEHICLE_REGISTRATION/train/JPEGImages',
+    'train_images': './data/VEHICLE_REGISTRATION/train',
     'train_info':   './data/VEHICLE_REGISTRATION/train/annotations.json',
 
-    'valid_images': './data/VEHICLE_REGISTRATION/test/JPEGImages',
+    'valid_images': './data/VEHICLE_REGISTRATION/test',
     'valid_info':   './data/VEHICLE_REGISTRATION/test/annotations.json',
 
     'has_gt': True,
@@ -253,9 +253,46 @@ card_dataset = dataset_base.copy({
     ),
 })
 
+ekyc_dataset = dataset_base.copy({
+    'name': 'eKYC Dataset',
+
+    'train_images': './data/COCO_eKYCs_220817/train/',
+    'train_info':   './data/COCO_eKYCs_220817/train/annotations.json',
+
+    'valid_images': './data/COCO_eKYCs_220817/test/',
+    'valid_info':   './data/COCO_eKYCs_220817/test/annotations.json',
+
+    'has_gt': True,
+    'class_names': (
+        'BLX',
+        'BLX_BACK',
+        'BLX_OLD',
+        'BLX_BACK_OLD',
+        'CMND',
+        'CMND_BACK',
+        'CCCD',
+        'CCCD_BACK',
+        'CMCC',
+        'CCCD_front_chip',
+        'CCCD_back_chip',
+        'CMQD_A',
+        'CMQD_A_BACK',
+        'CMQD_B',
+        'CMQD_B_BACK',
+        'CMQD_C',
+        'CMQD_C_BACK',
+        'CMQD_D',
+        'CMQD_D_BACK',
+        'CMQD_B_VT',
+        'CMQD_B_VT_BACK',
+        'PASSPORT',
+        'PASSPORT_OTHER',
+    ),
+})
+
+
 
 # ----------------------- TRANSFORMS ----------------------- #
-
 resnet_transform = Config({
     'channel_order': 'RGB',
     'normalize': True,
@@ -402,6 +439,9 @@ mobilenetv2_backbone = backbone_base.copy({
     'pred_aspect_ratios': [ [[1, 1/2, 2]] ]*5,
     'pred_scales': [[24], [48], [96], [192], [384]],
 
+    # 'pred_aspect_ratios': [ [[1, 1/2, 2]] ]*4,
+    # 'pred_scales': [[50], [100], [200], [400]],
+
     'use_pixel_scales': True,
     'preapply_sqrt': False,
     'use_square_anchors': True,
@@ -540,7 +580,7 @@ coco_base_config = Config({
     'joint_dataset': None,
     'num_classes': 81, # This should include the background class
 
-    'max_iter': 400000,
+    'max_iter': 6500,
 
     # The maximum number of detections for evaluation
     'max_num_detections': 100,
@@ -552,13 +592,13 @@ coco_base_config = Config({
 
     # For each lr step, what to multiply the lr with
     'gamma': 0.1,
-    'lr_steps': (280000, 360000, 400000),
+    'lr_steps': (1000, 4000, 5500),
 
     # Initial learning rate to linearly warmup from (if until > 0)
     'lr_warmup_init': 1e-4,
 
     # If > 0 then increase the lr linearly from warmup_init to lr each iter for until iters
-    'lr_warmup_until': 500,
+    'lr_warmup_until': 200,
 
     # The terms to scale the respective loss by
     'conf_alpha': 1,
@@ -578,7 +618,8 @@ coco_base_config = Config({
     'mask_proto_prototype_activation': activation_func.relu,
     'mask_proto_mask_activation': activation_func.sigmoid,
     'mask_proto_coeff_activation': activation_func.tanh,
-    'mask_proto_crop': True,
+    # 'mask_proto_crop': True,
+    'mask_proto_crop': False,
     'mask_proto_crop_expand': 0,
     'mask_proto_loss': None,
     'mask_proto_binarize_downsampled_gt': True,
@@ -603,7 +644,8 @@ coco_base_config = Config({
     # Have a chance to scale down the image and pad (to emulate smaller detections)
     'augment_expand': True,
     # Potentialy sample a random crop from the image and put it in a random place
-    'augment_random_sample_crop': True,
+    'augment_random_sample_crop': False, ############################################### Do not apply random cropping
+    # for DKX dataset
     # Mirror the image with a probability of 1/2
     'augment_random_mirror': True,
     # Flip the image vertically with a probability of 1/2
@@ -735,11 +777,7 @@ coco_base_config = Config({
 })
 
 
-
-
-
 # ----------------------- YOLACT v1.0 CONFIGS ----------------------- #
-
 yolact_base_config = coco_base_config.copy({
     'name': 'yolact_base',
 
@@ -749,11 +787,13 @@ yolact_base_config = coco_base_config.copy({
 
     # Image Size
     'max_size': 550,
-    
+
     # Training params
     'lr_schedule': 'step',
-    'lr_steps': (280000, 600000, 700000, 750000),
-    'max_iter': 800000,
+    'lr_steps': (3000, 6000),
+    'max_iter': 16000,
+
+    'lr': 1e-3,
 
     'flow': flow_base,
     
@@ -808,7 +848,6 @@ yolact_base_config = coco_base_config.copy({
     'use_tensorrt_safe_mode': False,
 })
 
-
 yolact_edge_config = yolact_base_config.copy({
     'name': 'yolact_edge',
     'torch2trt_max_calibration_images': 100,
@@ -817,124 +856,6 @@ yolact_edge_config = yolact_base_config.copy({
     'torch2trt_fpn': True,
     'torch2trt_prediction_module': True,
     'use_fast_nms': False
-})
-
-
-yolact_edge_mobilenetv2_config = yolact_edge_config.copy({
-    'name': 'yolact_edge_mobilenetv2',
-    'backbone': mobilenetv2_backbone,
-
-    # Dataset stuff
-    'dataset': card_dataset,
-    'num_classes': len(card_dataset.class_names) + 1,
-
-    # Training params
-    'lr_schedule': 'step',
-    'lr_steps': (15000,),
-    'max_iter': 38000,
-
-    'lr': 1e-4,
-
-    # Initial learning rate to linearly warmup from (if until > 0)
-    'lr_warmup_init': 1e-5,
-
-    # If > 0 then increase the lr linearly from warmup_init to lr each iter for until iters
-    'lr_warmup_until': 100,
-})
-
-
-# yolact_edge_mobilenetv2_config = yolact_edge_config.copy({
-#     'name': 'yolact_edge_mobilenetv2',
-
-#     'backbone': mobilenetv2_backbone
-# })
-
-
-yolact_edge_vid_config = yolact_edge_config.copy({
-    'name': 'yolact_edge_vid',
-    'dataset': youtube_vis_dataset.copy({
-        'joint': 'coco',
-        'use_all_frames': True,
-        'images_per_video': 1,
-        'frame_offset_lb': 2,
-        'frame_offset_ub': 5,
-        'frame_offset_multiplier': 1,
-        'all_frame_direction': 'forward',
-    }),
-
-    'torch2trt_spa': True,
-    'torch2trt_spa_int8': False,
-    'torch2trt_flow_net': False,
-    'torch2trt_flow_net_int8': True,
-
-    'joint_dataset': yolact_edge_config.dataset.copy({
-        'dataset_map': 'ytvis'
-    }),
-    'lr': 2e-4,
-    'lr_warmup_init': 0,
-    'lr_schedule': 'cosine',
-    'max_iter': 200000,
-    'num_classes': len(youtube_vis_dataset.class_names) + 1,
-    'augment_expand': False,
-    'flow': flow_base.copy({
-        'encode_layers': [[1], [2], [4]],
-        'reduce_channels': [64],
-        'encode_channels': 64,
-        'num_groups': 1,
-        'use_shuffle_cat': False,
-        'base_backward': True,
-        'fine_tune_layers': 'flow_net,flow_net_pre_convs,spa,fpn_phase_2,proto_net,prediction_layers,semantic_seg_conv',
-        'selected_layers': [1, 2],
-        'warp_mode': 'flow',
-        'model': 'mini',
-        'use_pseudo_gt_flow_loss': False,
-        'feature_matching_loss': 'cosine',
-        'use_spa': True,
-        'fm_loss_loc': 'L+P',
-    })
-})
-
-yolact_edge_vid_minimal_config = yolact_edge_vid_config.copy({
-    'name': 'yolact_edge_vid_minimal',
-    'torch2trt_spa': False,
-    'flow': yolact_edge_vid_config.flow.copy({
-        'fine_tune_layers': 'flow_net,flow_net_pre_convs,fpn_phase_2,proto_net,prediction_layers,semantic_seg_conv',
-        'use_spa': False,
-        'feature_matching_loss': None,
-    })
-})
-
-yolact_edge_vid_trainflow_config = yolact_edge_vid_config.copy({
-    'name': 'yolact_edge_vid_trainflow',
-    'dataset': flying_chairs_dataset,
-    'lr': 2e-4,
-    'max_iter': 400000,
-    'flow': yolact_edge_vid_config.flow.copy({
-        'train_flow': True,
-        'base_backward': False,
-        'fine_tune_layers': 'flow_net,flow_net_pre_convs'
-    })
-})
-
-yolact_edge_youtubevis_config = yolact_edge_vid_config.copy({
-    'name': 'yolact_edge_youtubevis',
-    'dataset': yolact_edge_vid_config.dataset.copy({
-        'use_all_frames': False,
-        'images_per_video': 1,
-    }),
-
-    'torch2trt_spa': False,
-    'torch2trt_flow_net_int8': False,
-
-    'lr': 5e-4,
-    'lr_schedule': 'cosine',
-    'max_iter': 500000,
-    'augment_expand': True,
-    'flow': yolact_edge_vid_config.flow.copy({
-        'warp_mode': 'none',
-        'fine_tune_layers': None,
-        'use_spa': False
-    })
 })
 
 yolact_resnet50_config = yolact_base_config.copy({
@@ -970,23 +891,58 @@ yolact_edge_resnet50_config = yolact_edge_config.copy({
     'backbone': yolact_resnet50_config.backbone
 })
 
-yolact_edge_vid_resnet50_config = yolact_edge_vid_config.copy({
-    'name': 'yolact_edge_vid_resnet50',
-    'backbone': yolact_resnet50_config.backbone
+yolact_edge_mobilenetv2_config = yolact_edge_config.copy({
+    'name': 'yolact_edge_mobilenetv2',
+
+    'backbone': mobilenetv2_backbone,
+
+    # Dataset stuff
+    # 'dataset': card_dataset,
+    # 'num_classes': len(card_dataset.class_names) + 1,
+    'dataset': ekyc_dataset,
+    'num_classes': len(ekyc_dataset.class_names) + 1,
+
+    # Training params
+    'lr_schedule': 'step',
+    'lr_steps': (15000,),
+    'max_iter': 38000,
+
+    'lr': 1e-3,
+
+    # Initial learning rate to linearly warmup from (if until > 0)
+    'lr_warmup_init': 1e-5,
+
+    # If > 0 then increase the lr linearly from warmup_init to lr each iter for until iters
+    'lr_warmup_until': 100,
 })
 
-yolact_edge_vid_trainflow_resnet50_config = yolact_edge_vid_trainflow_config.copy({
-    'name': 'yolact_edge_vid_trainflow_resnet50',
-    'backbone': yolact_resnet50_config.backbone
-})
+# yolact_edge_mobilenetv2_config = yolact_edge_config.copy({
+#     'name': 'yolact_edge_mobilenetv2',
 
-yolact_edge_youtubevis_resnet50_config = yolact_edge_youtubevis_config.copy({
-    'name': 'yolact_edge_youtubevis_resnet50',
-    'backbone': yolact_resnet50_config.backbone
-})
+#     'backbone': mobilenetv2_backbone,
+
+#     # Dataset stuff
+#     'dataset': card_dataset,
+#     'num_classes': len(card_dataset.class_names) + 1,
+#     # 'dataset': ekyc_dataset,
+#     # 'num_classes': len(ekyc_dataset.class_names) + 1,
+
+#     # Training params
+#     'lr_schedule': 'step',
+#     'lr_steps': (15000,),
+#     'max_iter': 38000,
+
+#     'lr': 1e-3,
+
+#     # Initial learning rate to linearly warmup from (if until > 0)
+#     'lr_warmup_init': 1e-5,
+
+#     # If > 0 then increase the lr linearly from warmup_init to lr each iter for until iters
+#     'lr_warmup_until': 100,
+# })
 
 # Default config
-cfg = yolact_edge_config.copy()
+cfg = yolact_edge_mobilenetv2_config.copy()
 
 def set_cfg(config_name:str):
     """ Sets the active config. Works even if cfg is already imported! """
@@ -999,4 +955,3 @@ def set_cfg(config_name:str):
 def set_dataset(dataset_name:str):
     """ Sets the dataset of the current config. """
     cfg.dataset = eval(dataset_name)
-    

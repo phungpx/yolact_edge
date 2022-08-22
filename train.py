@@ -48,7 +48,7 @@ parser.add_argument('--random_seed', default=42, type=int,
                     help='Random seed used across all workers')
 parser.add_argument('--num_workers', default=4, type=int,
                     help='Number of workers used in dataloading')
-parser.add_argument('--num_gpus', default=None, type=int,
+parser.add_argument('--num_gpus', default=1, type=int,
                     help='Number of GPUs used in training')
 port = 2 ** 15 + 2 ** 14 + hash(os.getuid()) % 2 ** 14
 parser.add_argument("--dist_url", default="tcp://127.0.0.1:{}".format(port))
@@ -64,15 +64,15 @@ parser.add_argument('--gamma', default=None, type=float,
                     help='For each lr step, what to multiply the lr by. Leave as None to read this from the config.')
 parser.add_argument('--save_folder', default='weights/',
                     help='Directory for saving checkpoint models')
-parser.add_argument('--log_folder', default='../../logs/',
+parser.add_argument('--log_folder', default='logs/',
                     help='Directory for saving Tensorboard logs')
 parser.add_argument('--config', default=None,
                     help='The config object to use.')
-parser.add_argument('--save_interval', default=10000, type=int,
+parser.add_argument('--save_interval', default=500, type=int,
                     help='The number of iterations between saving the model.')
 parser.add_argument('--validation_size', default=5000, type=int,
                     help='The number of images to use for validation.')
-parser.add_argument('--validation_epoch', default=2, type=int,
+parser.add_argument('--validation_epoch', default=1, type=int,
                     help='Output validation information every n iterations. If -1, do no validation.')
 parser.add_argument('--keep_latest', dest='keep_latest', action='store_true',
                     help='Only keep the latest checkpoint instead of each one.')
@@ -113,6 +113,8 @@ replace('gamma')
 replace('momentum')
 
 lr = args.lr
+print(lr)
+
 loss_types = ['B', 'C', 'M', 'P', 'D', 'E', 'S', 'F', 'R', 'W']
 
 if torch.cuda.is_available():
@@ -216,13 +218,20 @@ def train(rank, args):
     else:
         dataset = COCODetection(image_path=cfg.dataset.train_images,
                                 info_file=cfg.dataset.train_info,
-                                transform=SSDAugmentation(MEANS))
+                                transform=SSDAugmentation(MEANS),
+                                copy_paste=False)
+        
+        logger.info("Train set: {}".format(len(dataset)))
 
         if args.validation_epoch > 0:
             setup_eval()
             val_dataset = COCODetection(image_path=cfg.dataset.valid_images,
                                         info_file=cfg.dataset.valid_info,
-                                        transform=BaseTransform(MEANS))
+                                        transform=BaseTransform(MEANS),)
+            
+            logger.info("Val set: {}".format(len(val_dataset)))
+            
+            
 
     # Set cuda device early to avoid duplicate model in master GPU
     if args.cuda:

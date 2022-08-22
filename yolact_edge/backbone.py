@@ -307,9 +307,6 @@ class DarkNetBackbone(nn.Module):
         self.load_state_dict(torch.load(path, map_location='cpu'), strict=False)
 
 
-
-
-
 class VGGBackbone(nn.Module):
     """
     Args:

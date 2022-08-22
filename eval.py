@@ -32,7 +32,7 @@ import cv2
 import logging
 
 import math
-
+import imgaug.augmenters as iaa
 
 def str2bool(v):
     if v.lower() in ('yes', 'true', 't', 'y', '1'):
@@ -152,6 +152,8 @@ coco_cats = {} # Call prep_coco_cats to fill this
 coco_cats_inv = {}
 color_cache = defaultdict(lambda: {})
 
+pad_to_square = iaa.PadToSquare(position='right-bottom')
+
 def prep_display(dets_out, img, h, w, undo_transform=True, class_color=False, mask_alpha=0.45):
     """
     Note: If undo_transform=False then im_h and im_w are allowed to be None.
@@ -162,7 +164,7 @@ def prep_display(dets_out, img, h, w, undo_transform=True, class_color=False, ma
     else:
         img_gpu = img / 255.0
         h, w, _ = img.shape
-    
+
     with timer.env('Postprocess'):
         t = postprocess(dets_out, w, h, visualize_lincomb = args.display_lincomb,
                                         crop_masks        = args.crop,
@@ -278,7 +280,7 @@ def prep_coco_cats():
         coco_cats_inv[coco_cat_id] = transformed_cat_id
 
 
-def get_coco_cat(transformed_cat_id):
+def get_coco_cat(transformed_cat_idyolact_edge_mobilenetv2_0_500):
     """ transformed_cat_id is [0,80) as indices in cfg.dataset.class_names """
     return coco_cats[transformed_cat_id]
 
@@ -396,7 +398,7 @@ def prep_metrics(ap_data, dets, img, gt, gt_masks, h, w, num_crowd, image_id, de
             gt_boxes[:, [0, 2]] *= w
             gt_boxes[:, [1, 3]] *= h
             gt_classes = list(gt[:, 4].astype(int))
-            gt_masks = torch.Tensor(gt_masks).view(-1, h*w)
+            gt_masks = torch.Tensor(gt_masks).reshape(-1, h*w)
 
             if num_crowd > 0:
                 split = lambda x: (x[-num_crowd:], x[:-num_crowd])
@@ -585,7 +587,16 @@ def badhash(x):
     return x
 
 def evalimage(net:Yolact, path:str, save_path:str=None, detections:Detections=None, image_id=None):
-    frame = torch.from_numpy(cv2.imread(path)).cuda().float()
+    img = cv2.imread(path)
+
+    ##############################
+    # pad to square; apply only for DKX dataset
+    h, w, _ = img.shape
+    # if h / w > 1.75 or w / h > 1.75:
+    img = pad_to_square(image=img)
+    ##############################
+
+    frame = torch.from_numpy(img).cuda().float()
     batch = FastBaseTransform()(frame.unsqueeze(0))
 
     if cfg.flow.warp_mode != 'none':

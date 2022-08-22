@@ -165,7 +165,6 @@ if __name__ == '__main__':
             maxes, maxidx = torch.max(ious, dim=1)
 
             perGTAnchorMax[start:end] = maxes
-    
 
         hits = (perGTAnchorMax > 0.5).float()
 
