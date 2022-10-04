@@ -253,42 +253,56 @@ card_dataset = dataset_base.copy({
     ),
 })
 
+
 ekyc_dataset = dataset_base.copy({
     'name': 'eKYC Dataset',
 
-    'train_images': './data/COCO_eKYCs_220817/train/',
-    'train_info':   './data/COCO_eKYCs_220817/train/annotations.json',
+    'train_images': './data/CARD_EXTRACTION_COCO_FORMAT/train/',
+    'train_info':   './data/CARD_EXTRACTION_COCO_FORMAT/train/annotations.json',
 
-    'valid_images': './data/COCO_eKYCs_220817/test/',
-    'valid_info':   './data/COCO_eKYCs_220817/test/annotations.json',
+    'valid_images': './data/CARD_EXTRACTION_COCO_FORMAT/test/',
+    'valid_info':   './data/CARD_EXTRACTION_COCO_FORMAT/test/annotations.json',
 
     'has_gt': True,
-    'class_names': (
-        'BLX',
-        'BLX_BACK',
-        'BLX_OLD',
-        'BLX_BACK_OLD',
-        'CMND',
-        'CMND_BACK',
-        'CCCD',
-        'CCCD_BACK',
-        'CMCC',
-        'CCCD_front_chip',
-        'CCCD_back_chip',
-        'CMQD_A',
-        'CMQD_A_BACK',
-        'CMQD_B',
-        'CMQD_B_BACK',
-        'CMQD_C',
-        'CMQD_C_BACK',
-        'CMQD_D',
-        'CMQD_D_BACK',
-        'CMQD_B_VT',
-        'CMQD_B_VT_BACK',
-        'PASSPORT',
-        'PASSPORT_OTHER',
-    ),
+    'class_names': ('CARD',),
 })
+
+# ekyc_dataset = dataset_base.copy({
+#     'name': 'eKYC Dataset',
+
+#     'train_images': './data/COCO_eKYCs_220817/train/',
+#     'train_info':   './data/COCO_eKYCs_220817/train/annotations.json',
+
+#     'valid_images': './data/COCO_eKYCs_220817/test/',
+#     'valid_info':   './data/COCO_eKYCs_220817/test/annotations.json',
+
+#     'has_gt': True,
+#     'class_names': (
+#         'BLX',
+#         'BLX_BACK',
+#         'BLX_OLD',
+#         'BLX_BACK_OLD',
+#         'CMND',
+#         'CMND_BACK',
+#         'CCCD',
+#         'CCCD_BACK',
+#         'CMCC',
+#         'CCCD_front_chip',
+#         'CCCD_back_chip',
+#         'CMQD_A',
+#         'CMQD_A_BACK',
+#         'CMQD_B',
+#         'CMQD_B_BACK',
+#         'CMQD_C',
+#         'CMQD_C_BACK',
+#         'CMQD_D',
+#         'CMQD_D_BACK',
+#         'CMQD_B_VT',
+#         'CMQD_B_VT_BACK',
+#         'PASSPORT',
+#         'PASSPORT_OTHER',
+#     ),
+# })
 
 
 
