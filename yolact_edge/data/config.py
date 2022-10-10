@@ -260,8 +260,8 @@ ekyc_dataset = dataset_base.copy({
     'train_images': './data/CARD_EXTRACTION_COCO_FORMAT/train/',
     'train_info':   './data/CARD_EXTRACTION_COCO_FORMAT/train/annotations.json',
 
-    'valid_images': './data/CARD_EXTRACTION_COCO_FORMAT/test/',
-    'valid_info':   './data/CARD_EXTRACTION_COCO_FORMAT/test/annotations.json',
+    'valid_images': './data/CARD_EXTRACTION_COCO_FORMAT/valid/',
+    'valid_info':   './data/CARD_EXTRACTION_COCO_FORMAT/valid/annotations.json',
 
     'has_gt': True,
     'class_names': ('CARD',),
